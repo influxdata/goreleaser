@@ -1,4 +1,4 @@
-module github.com/goreleaser/goreleaser
+module github.com/influxdata/goreleaser
 
 require (
 	github.com/Masterminds/semver v1.4.2
