@@ -58,6 +58,7 @@ func TestFullFormulae(t *testing.T) {
 	data.Dependencies = []string{"gtk+"}
 	data.Conflicts = []string{"svn"}
 	data.Plist = "it works"
+	data.CustomBlock = []string{"devel do", `  url "https://github.com/caarlos0/test/releases/download/v0.1.3/test_Darwin_x86_64.tar.gz"`, `  sha256 "1633f61598ab0791e213135923624eb342196b3494909c91899bcd0560f84c68"`, "end"}
 	data.Install = []string{"custom install script", "another install script"}
 	data.Tests = []string{`system "#{bin}/foo -version"`}
 	out, err := doBuildFormula(data)
@@ -101,6 +102,10 @@ func TestRunPipe(t *testing.T) {
 		"custom_download_strategy": func(ctx *context.Context) {
 			ctx.Config.Brew.DownloadStrategy = "GitHubPrivateRepositoryReleaseDownloadStrategy"
 		},
+		"custom_require": func(ctx *context.Context) {
+			ctx.Config.Brew.DownloadStrategy = "CustomDownloadStrategy"
+			ctx.Config.Brew.CustomRequire = "custom_download_strategy"
+		},
 		"binary_overridden": func(ctx *context.Context) {
 			ctx.Config.Archive.Format = "binary"
 			ctx.Config.Archive.FormatOverrides = []config.FormatOverride{
@@ -109,6 +114,9 @@ func TestRunPipe(t *testing.T) {
 					Format: "zip",
 				},
 			}
+		},
+		"custom_block": func(ctx *context.Context) {
+			ctx.Config.Brew.CustomBlock = `head "https://github.com/caarlos0/test.git"`
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -370,6 +378,11 @@ func TestDefault(t *testing.T) {
 	assert.NotEmpty(t, ctx.Config.Brew.CommitAuthor.Name)
 	assert.NotEmpty(t, ctx.Config.Brew.CommitAuthor.Email)
 	assert.Equal(t, `bin.install "foo"`, ctx.Config.Brew.Install)
+}
+
+func TestGHFolder(t *testing.T) {
+	assert.Equal(t, "bar.rb", ghFormulaPath("", "bar.rb"))
+	assert.Equal(t, "fooo/bar.rb", ghFormulaPath("fooo", "bar.rb"))
 }
 
 type DummyClient struct {

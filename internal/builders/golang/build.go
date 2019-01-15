@@ -19,8 +19,10 @@ import (
 )
 
 // Default builder instance
+// nolint: gochecknoglobals
 var Default = &Builder{}
 
+// nolint: gochecknoinits
 func init() {
 	api.Register("go", Default)
 }
@@ -95,7 +97,7 @@ func (*Builder) Build(ctx *context.Context, build config.Build, options api.Opti
 		Goos:   target.os,
 		Goarch: target.arch,
 		Goarm:  target.arm,
-		Extra: map[string]string{
+		Extra: map[string]interface{}{
 			"Binary": build.Binary,
 			"Ext":    options.Ext,
 		},

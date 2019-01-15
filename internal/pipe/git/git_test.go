@@ -62,37 +62,6 @@ func TestNewRepository(t *testing.T) {
 	assert.Contains(t, Pipe{}.Run(ctx).Error(), `fatal: ambiguous argument 'HEAD'`)
 }
 
-func TestNoTagsSnapshot(t *testing.T) {
-	_, back := testlib.Mktmp(t)
-	defer back()
-	testlib.GitInit(t)
-	testlib.GitRemoteAdd(t, "git@github.com:foo/bar.git")
-	testlib.GitCommit(t, "first")
-	var ctx = context.New(config.Project{
-		Snapshot: config.Snapshot{
-			NameTemplate: "SNAPSHOT-{{.Commit}}",
-		},
-	})
-	ctx.Snapshot = true
-	testlib.AssertSkipped(t, Pipe{}.Run(ctx))
-	assert.Contains(t, ctx.Version, "SNAPSHOT-")
-}
-
-func TestNoTagsSnapshotInvalidTemplate(t *testing.T) {
-	_, back := testlib.Mktmp(t)
-	defer back()
-	testlib.GitInit(t)
-	testlib.GitRemoteAdd(t, "git@github.com:foo/bar.git")
-	testlib.GitCommit(t, "first")
-	var ctx = context.New(config.Project{
-		Snapshot: config.Snapshot{
-			NameTemplate: "{{",
-		},
-	})
-	ctx.Snapshot = true
-	assert.EqualError(t, Pipe{}.Run(ctx), `failed to generate snapshot name: template: tmpl:1: unexpected unclosed action in command`)
-}
-
 // TestNoTagsNoSnapshot covers the situation where a repository
 // only contains simple commits and no tags. In this case you have
 // to set the --snapshot flag otherwise an error is returned.
@@ -222,23 +191,6 @@ func TestSnapshotDirty(t *testing.T) {
 	var ctx = context.New(config.Project{})
 	ctx.Snapshot = true
 	testlib.AssertSkipped(t, Pipe{}.Run(ctx))
-}
-
-func TestShortCommitHash(t *testing.T) {
-	_, back := testlib.Mktmp(t)
-	defer back()
-	testlib.GitInit(t)
-	testlib.GitRemoteAdd(t, "git@github.com:foo/bar.git")
-	testlib.GitCommit(t, "first")
-	var ctx = context.New(config.Project{
-		Snapshot: config.Snapshot{
-			NameTemplate: "{{.Commit}}",
-		},
-	})
-	ctx.Snapshot = true
-	ctx.Config.Git.ShortHash = true
-	testlib.AssertSkipped(t, Pipe{}.Run(ctx))
-	assert.Len(t, ctx.Version, 7)
 }
 
 func TestGitNotInPath(t *testing.T) {

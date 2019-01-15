@@ -14,15 +14,26 @@ type templateData struct {
 	Dependencies     []string
 	Conflicts        []string
 	Tests            []string
+	CustomRequire    string
+	CustomBlock      []string
 }
 
-const formulaTemplate = `class {{ .Name }} < Formula
+const formulaTemplate = `{{ if .CustomRequire -}}
+require_relative "{{ .CustomRequire }}"
+{{ end -}}
+class {{ .Name }} < Formula
   desc "{{ .Desc }}"
   homepage "{{ .Homepage }}"
   url "{{ .DownloadURL }}"
   {{- if .DownloadStrategy }}, :using => {{ .DownloadStrategy }}{{- end }}
   version "{{ .Version }}"
   sha256 "{{ .SHA256 }}"
+
+  {{- with .CustomBlock }}
+  {{ range $index, $element := . }}
+  {{ . }}
+  {{- end }}
+  {{- end }}
 
   {{- with .Dependencies }}
   {{ range $index, $element := . }}

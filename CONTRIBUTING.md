@@ -10,16 +10,16 @@ conduct](/CODE_OF_CONDUCT.md).
 Prerequisites:
 
 - `make`
-- [Go 1.10+](https://golang.org/doc/install)
+- [Go 1.11+](https://golang.org/doc/install)
 - `rpmbuild` (`apt get install rpm`/`brew install rpm`)
 - [snapcraft](https://snapcraft.io/)
 - [Docker](https://www.docker.com/)
+- `gpg` (probably already installed on your system)
 
-Clone `goreleaser` from source into `$GOPATH`:
+Clone `goreleaser` anywhere:
 
 ```sh
-$ go get -d github.com/goreleaser/goreleaser
-$ cd $GOPATH/src/github.com/goreleaser/goreleaser
+$ git clone git@github.com:goreleaser/goreleaser.git
 ```
 
 Install the build and lint dependencies:
@@ -52,27 +52,11 @@ Which runs all the linters and tests.
 
 ## Create a commit
 
-Commit messages should be well formatted.
-Start your commit message with the type. Choose one of the following:
-`feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `revert`, `add`, `remove`, `move`, `bump`, `update`, `release`
+Commit messages should be well formatted, and to make that "standarized", we
+are using Convetional Commits.
 
-After a colon, you should give the message a title, starting with uppercase and ending without a dot.
-Keep the width of the text at 72 chars.
-The title must be followed with a newline, then a more detailed description.
-
-Please reference any GitHub issues on the last line of the commit message (e.g. `See #123`, `Closes #123`, `Fixes #123`).
-
-An example:
-
-```
-docs: Add example for --release-notes flag
-
-I added an example to the docs of the `--release-notes` flag to make
-the usage more clear.  The example is an realistic use case and might
-help others to generate their own changelog.
-
-See #284
-```
+You can follow the documentation on
+[their website](https://www.conventionalcommits.org).
 
 ## Submit a pull request
 

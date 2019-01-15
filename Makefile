@@ -1,28 +1,16 @@
 SOURCE_FILES?=./...
 TEST_PATTERN?=.
 TEST_OPTIONS?=
-OS=$(shell uname -s)
 
 export PATH := ./bin:$(PATH)
+export GO111MODULE := on
 
 # Install all the build and lint dependencies
 setup:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh
 	curl -sfL https://install.goreleaser.com/github.com/gohugoio/hugo.sh | sh
-	curl -sfL https://install.goreleaser.com/github.com/caarlos0/bandep.sh | sh
-ifeq ($(OS), Darwin)
-	brew install dep
-else
-	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-endif
-	dep ensure -vendor-only
-	echo "make check" > .git/hooks/pre-commit
-	chmod +x .git/hooks/pre-commit
+	go mod download
 .PHONY: setup
-
-check:
-	bandep --ban github.com/tj/assert
-.PHONY: check
 
 # Run all the tests
 test:
@@ -67,14 +55,9 @@ favicon:
 	convert www/static/avatar.png -resize x120 www/static/apple-touch-icon.png
 .PHONY: favicon
 
-serve:
-	@hugo server --enableGitInfo --watch --source www --disableFastRender
+serve: favicon
+	@hugo server --enableGitInfo --watch --source www
 .PHONY: serve
-
-depgraph:
-	go get github.com/kisielk/godepgraph
-	godepgraph -horizontal -s -o github.com/goreleaser/goreleaser . | dot -Tsvg -o www/static/deps.svg
-.PHONY: depgraph
 
 # Show to-do items per file.
 todo:

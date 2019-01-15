@@ -1,3 +1,6 @@
+before:
+  hooks:
+  - go mod download
 builds:
 - env:
     - CGO_ENABLED=0
@@ -21,13 +24,30 @@ changelog:
     - Merge pull request
     - Merge branch
 dockers:
-- image: goreleaser/goreleaser
+- image_templates:
+  - 'goreleaser/goreleaser:{{ .Tag }}-cgo'
+  - 'goreleaser/goreleaser:v{{ .Major }}.{{ .Minor }}-cgo'
+  - 'goreleaser/goreleaser:latest-cgo'
+  dockerfile: Dockerfile.cgo
+  binary: goreleaser
+  build_flag_templates:
+  - "--label=org.label-schema.schema-version=1.0"
+  - "--label=org.label-schema.version={{.Version}}"
+  - "--label=org.label-schema.name={{.ProjectName}}"
   extra_files:
   - scripts/entrypoint.sh
-  tag_templates:
-  - '{{ .Tag }}'
-  - 'v{{ .Major }}.{{ .Minor }}'
-  - 'latest'
+- image_templates:
+  - 'goreleaser/goreleaser:{{ .Tag }}'
+  - 'goreleaser/goreleaser:v{{ .Major }}.{{ .Minor }}'
+  - 'goreleaser/goreleaser:latest'
+  dockerfile: Dockerfile
+  binary: goreleaser
+  build_flag_templates:
+  - "--label=org.label-schema.schema-version=1.0"
+  - "--label=org.label-schema.version={{.Version}}"
+  - "--label=org.label-schema.name={{.ProjectName}}"
+  extra_files:
+  - scripts/entrypoint.sh
 archive:
   name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
   replacements:
@@ -78,4 +98,4 @@ snapcraft:
     wrapped in your favorite CI.
   grade: stable
   confinement: classic
-
+  publish: true

@@ -2,7 +2,6 @@ package release
 
 import (
 	"bytes"
-	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,6 +12,7 @@ import (
 	"github.com/goreleaser/goreleaser/internal/testlib"
 	"github.com/goreleaser/goreleaser/pkg/config"
 	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,7 +49,7 @@ func TestRunPipe(t *testing.T) {
 		Path: debfile.Name(),
 	})
 	client := &DummyClient{}
-	assert.NoError(t, doRun(ctx, client))
+	assert.NoError(t, doPublish(ctx, client))
 	assert.True(t, client.CreatedRelease)
 	assert.True(t, client.UploadedFile)
 	assert.Contains(t, client.UploadedFileNames, "bin.deb")
@@ -70,7 +70,7 @@ func TestRunPipeReleaseCreationFailed(t *testing.T) {
 	client := &DummyClient{
 		FailToCreateRelease: true,
 	}
-	assert.Error(t, doRun(ctx, client))
+	assert.Error(t, doPublish(ctx, client))
 	assert.False(t, client.CreatedRelease)
 	assert.False(t, client.UploadedFile)
 }
@@ -92,7 +92,7 @@ func TestRunPipeWithFileThatDontExist(t *testing.T) {
 		Path: "/nope/nope/nope",
 	})
 	client := &DummyClient{}
-	assert.Error(t, doRun(ctx, client))
+	assert.Error(t, doPublish(ctx, client))
 	assert.True(t, client.CreatedRelease)
 	assert.False(t, client.UploadedFile)
 }
@@ -120,20 +120,37 @@ func TestRunPipeUploadFailure(t *testing.T) {
 	client := &DummyClient{
 		FailToUpload: true,
 	}
-	assert.Error(t, doRun(ctx, client))
+	assert.EqualError(t, doPublish(ctx, client), "failed to upload bin.tar.gz after 10 retries: upload failed")
 	assert.True(t, client.CreatedRelease)
 	assert.False(t, client.UploadedFile)
 }
 
-func TestSnapshot(t *testing.T) {
-	var ctx = &context.Context{
-		SkipPublish: true,
-		Parallelism: 1,
+func TestRunPipeUploadRetry(t *testing.T) {
+	folder, err := ioutil.TempDir("", "goreleasertest")
+	assert.NoError(t, err)
+	tarfile, err := os.Create(filepath.Join(folder, "bin.tar.gz"))
+	assert.NoError(t, err)
+	var config = config.Project{
+		Release: config.Release{
+			GitHub: config.Repo{
+				Owner: "test",
+				Name:  "test",
+			},
+		},
 	}
-	client := &DummyClient{}
-	testlib.AssertSkipped(t, doRun(ctx, client))
-	assert.False(t, client.CreatedRelease)
-	assert.False(t, client.UploadedFile)
+	var ctx = context.New(config)
+	ctx.Git = context.GitInfo{CurrentTag: "v1.0.0"}
+	ctx.Artifacts.Add(artifact.Artifact{
+		Type: artifact.UploadableArchive,
+		Name: "bin.tar.gz",
+		Path: tarfile.Name(),
+	})
+	client := &DummyClient{
+		FailFirstUpload: true,
+	}
+	assert.NoError(t, doPublish(ctx, client))
+	assert.True(t, client.CreatedRelease)
+	assert.True(t, client.UploadedFile)
 }
 
 func TestPipeDisabled(t *testing.T) {
@@ -143,7 +160,7 @@ func TestPipeDisabled(t *testing.T) {
 		},
 	})
 	client := &DummyClient{}
-	testlib.AssertSkipped(t, doRun(ctx, client))
+	testlib.AssertSkipped(t, doPublish(ctx, client))
 	assert.False(t, client.CreatedRelease)
 	assert.False(t, client.UploadedFile)
 }
@@ -160,6 +177,50 @@ func TestDefault(t *testing.T) {
 	assert.Equal(t, "goreleaser", ctx.Config.Release.GitHub.Owner)
 }
 
+func TestDefaultPreReleaseAuto(t *testing.T) {
+	_, back := testlib.Mktmp(t)
+	defer back()
+	testlib.GitInit(t)
+	testlib.GitRemoteAdd(t, "git@github.com:goreleaser/goreleaser.git")
+
+	t.Run("auto-release", func(t *testing.T) {
+		var ctx = context.New(config.Project{
+			Release: config.Release{
+				Prerelease: "auto",
+			},
+		})
+		ctx.Git.CurrentTag = "v1.0.0"
+		assert.NoError(t, Pipe{}.Default(ctx))
+		assert.Equal(t, false, ctx.PreRelease)
+	})
+
+	t.Run("auto-rc", func(t *testing.T) {
+		var ctx = context.New(config.Project{
+			Release: config.Release{
+				Prerelease: "auto",
+			},
+		})
+		ctx.Git.CurrentTag = "v1.0.1-rc1"
+		assert.NoError(t, Pipe{}.Default(ctx))
+		assert.Equal(t, true, ctx.PreRelease)
+	})
+
+	t.Run("auto-rc", func(t *testing.T) {
+		var ctx = context.New(config.Project{
+			Release: config.Release{
+				GitHub: config.Repo{
+					Name:  "foo",
+					Owner: "foo",
+				},
+				Prerelease: "auto",
+			},
+		})
+		ctx.Git.CurrentTag = "v1.0.1-rc1"
+		assert.NoError(t, Pipe{}.Default(ctx))
+		assert.Equal(t, true, ctx.PreRelease)
+	})
+}
+
 func TestDefaultPipeDisabled(t *testing.T) {
 	_, back := testlib.Mktmp(t)
 	defer back()
@@ -172,8 +233,8 @@ func TestDefaultPipeDisabled(t *testing.T) {
 		},
 	})
 	assert.NoError(t, Pipe{}.Default(ctx))
-	assert.Equal(t, "", ctx.Config.Release.GitHub.Name)
-	assert.Equal(t, "", ctx.Config.Release.GitHub.Owner)
+	assert.Equal(t, "goreleaser", ctx.Config.Release.GitHub.Name)
+	assert.Equal(t, "goreleaser", ctx.Config.Release.GitHub.Owner)
 }
 
 func TestDefaultFilled(t *testing.T) {
@@ -245,6 +306,7 @@ type DummyClient struct {
 	CreatedRelease      bool
 	UploadedFile        bool
 	UploadedFileNames   []string
+	FailFirstUpload     bool
 	Lock                sync.Mutex
 }
 
@@ -260,13 +322,22 @@ func (client *DummyClient) CreateFile(ctx *context.Context, commitAuthor config.
 	return
 }
 
-func (client *DummyClient) Upload(ctx *context.Context, releaseID int64, name string, file *os.File) (err error) {
+func (client *DummyClient) Upload(ctx *context.Context, releaseID int64, name string, file *os.File) error {
 	client.Lock.Lock()
 	defer client.Lock.Unlock()
+	// ensure file is read to better mimic real behavior
+	_, err := ioutil.ReadAll(file)
+	if err != nil {
+		return errors.Wrapf(err, "unexpected error")
+	}
 	if client.FailToUpload {
 		return errors.New("upload failed")
 	}
+	if client.FailFirstUpload {
+		client.FailFirstUpload = false
+		return errors.New("upload failed, should retry")
+	}
 	client.UploadedFile = true
 	client.UploadedFileNames = append(client.UploadedFileNames, name)
-	return
+	return nil
 }

@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
 
 	"github.com/apex/log"
-
 	"github.com/goreleaser/goreleaser/internal/artifact"
 	"github.com/goreleaser/goreleaser/internal/client"
 	"github.com/goreleaser/goreleaser/internal/pipe"
@@ -29,11 +29,11 @@ var ErrTooManyDarwin64Builds = errors.New("brew tap requires at most one darwin 
 type Pipe struct{}
 
 func (Pipe) String() string {
-	return "creating homebrew formula"
+	return "homebrew tap formula"
 }
 
-// Run the pipe
-func (Pipe) Run(ctx *context.Context) error {
+// Publish brew formula
+func (Pipe) Publish(ctx *context.Context) error {
 	client, err := client.NewGitHub(ctx)
 	if err != nil {
 		return err
@@ -132,13 +132,17 @@ func doRun(ctx *context.Context, client client.Client) error {
 		return pipe.Skip("release is marked as draft")
 	}
 
-	path = filepath.Join(ctx.Config.Brew.Folder, filename)
-	log.WithField("formula", path).
+	var gpath = ghFormulaPath(ctx.Config.Brew.Folder, filename)
+	log.WithField("formula", gpath).
 		WithField("repo", ctx.Config.Brew.GitHub.String()).
 		Info("pushing")
 
 	var msg = fmt.Sprintf("Brew formula update for %s version %s", ctx.Config.ProjectName, ctx.Git.CurrentTag)
-	return client.CreateFile(ctx, ctx.Config.Brew.CommitAuthor, ctx.Config.Brew.GitHub, content, path, msg)
+	return client.CreateFile(ctx, ctx.Config.Brew.CommitAuthor, ctx.Config.Brew.GitHub, content, gpath, msg)
+}
+
+func ghFormulaPath(folder, filename string) string {
+	return path.Join(folder, filename)
 }
 
 func getFormat(ctx *context.Context) string {
@@ -199,6 +203,8 @@ func dataFor(ctx *context.Context, artifact artifact.Artifact) (result templateD
 		Install:          split(cfg.Install),
 		Tests:            split(cfg.Test),
 		DownloadStrategy: cfg.DownloadStrategy,
+		CustomRequire:    cfg.CustomRequire,
+		CustomBlock:      split(cfg.CustomBlock),
 	}, nil
 }
 

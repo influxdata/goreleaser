@@ -4,7 +4,17 @@ package publish
 import (
 	"fmt"
 
+	"github.com/apex/log"
+	"github.com/fatih/color"
 	"github.com/goreleaser/goreleaser/internal/pipe"
+	"github.com/goreleaser/goreleaser/internal/pipe/artifactory"
+	"github.com/goreleaser/goreleaser/internal/pipe/brew"
+	"github.com/goreleaser/goreleaser/internal/pipe/docker"
+	"github.com/goreleaser/goreleaser/internal/pipe/put"
+	"github.com/goreleaser/goreleaser/internal/pipe/release"
+	"github.com/goreleaser/goreleaser/internal/pipe/s3"
+	"github.com/goreleaser/goreleaser/internal/pipe/scoop"
+	"github.com/goreleaser/goreleaser/internal/pipe/snapcraft"
 	"github.com/goreleaser/goreleaser/pkg/context"
 	"github.com/pkg/errors"
 )
@@ -13,7 +23,7 @@ import (
 type Pipe struct{}
 
 func (Pipe) String() string {
-	return "publishing artifacts"
+	return "publishing"
 }
 
 // Publisher should be implemented by pipes that want to publish artifacts
@@ -24,7 +34,19 @@ type Publisher interface {
 	Publish(ctx *context.Context) error
 }
 
-var publishers = []Publisher{}
+// nolint: gochecknoglobals
+var publishers = []Publisher{
+	s3.Pipe{},
+	put.Pipe{},
+	artifactory.Pipe{},
+	docker.Pipe{},
+	snapcraft.Pipe{},
+	// This should be one of the last steps
+	release.Pipe{},
+	// brew and scoop use the release URL, so, they should be last
+	brew.Pipe{},
+	scoop.Pipe{},
+}
 
 // Run the pipe
 func (Pipe) Run(ctx *context.Context) error {
@@ -32,9 +54,23 @@ func (Pipe) Run(ctx *context.Context) error {
 		return pipe.ErrSkipPublishEnabled
 	}
 	for _, publisher := range publishers {
-		if err := publisher.Publish(ctx); err != nil {
-			return errors.Wrapf(err, "failed to publish artifacts for %s", publisher.String())
+		log.Infof(color.New(color.Bold).Sprint(publisher.String()))
+		if err := handle(publisher.Publish(ctx)); err != nil {
+			return errors.Wrapf(err, "%s: failed to publish artifacts", publisher.String())
 		}
 	}
 	return nil
+}
+
+// TODO: for now this is duplicated, we should have better error handling
+// eventually.
+func handle(err error) error {
+	if err == nil {
+		return nil
+	}
+	if pipe.IsSkip(err) {
+		log.WithField("reason", err.Error()).Warn("skipped")
+		return nil
+	}
+	return err
 }

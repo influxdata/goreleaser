@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/apex/log"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // GitHubURLs holds the URLs to be used when using github enterprise
@@ -51,6 +51,8 @@ type Homebrew struct {
 	DownloadStrategy string       `yaml:"download_strategy,omitempty"`
 	SourceTarball    string       `yaml:"-"`
 	URLTemplate      string       `yaml:"url_template,omitempty"`
+	CustomRequire    string       `yaml:"custom_require,omitempty"`
+	CustomBlock      string       `yaml:"custom_block,omitempty"`
 }
 
 // Scoop contains the scoop.sh section
@@ -149,7 +151,7 @@ type Archive struct {
 
 	Format          string           `yaml:",omitempty"`
 	FormatOverrides []FormatOverride `yaml:"format_overrides,omitempty"`
-	WrapInDirectory bool             `yaml:"wrap_in_directory,omitempty"`
+	WrapInDirectory string           `yaml:"wrap_in_directory,omitempty"`
 	Files           []string         `yaml:",omitempty"`
 }
 
@@ -157,8 +159,8 @@ type Archive struct {
 type Release struct {
 	GitHub       Repo   `yaml:",omitempty"`
 	Draft        bool   `yaml:",omitempty"`
-	Prerelease   bool   `yaml:",omitempty"`
 	Disable      bool   `yaml:",omitempty"`
+	Prerelease   string `yaml:",omitempty"`
 	NameTemplate string `yaml:"name_template,omitempty"`
 }
 
@@ -217,6 +219,7 @@ type SnapcraftAppMetadata struct {
 type Snapcraft struct {
 	NameTemplate string            `yaml:"name_template,omitempty"`
 	Replacements map[string]string `yaml:",omitempty"`
+	Publish      bool              `yaml:",omitempty"`
 
 	Name        string                          `yaml:",omitempty"`
 	Summary     string                          `yaml:",omitempty"`
@@ -239,11 +242,13 @@ type Checksum struct {
 // Docker image config
 type Docker struct {
 	Binary             string   `yaml:",omitempty"`
+	Binaries           []string `yaml:",omitempty"`
 	Goos               string   `yaml:",omitempty"`
 	Goarch             string   `yaml:",omitempty"`
 	Goarm              string   `yaml:",omitempty"`
 	Image              string   `yaml:",omitempty"`
 	Dockerfile         string   `yaml:",omitempty"`
+	ImageTemplates     []string `yaml:"image_templates,omitempty"`
 	SkipPush           bool     `yaml:"skip_push,omitempty"`
 	TagTemplates       []string `yaml:"tag_templates,omitempty"`
 	Files              []string `yaml:"extra_files,omitempty"`

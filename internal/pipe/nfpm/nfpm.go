@@ -6,15 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/apex/log"
-	"github.com/goreleaser/nfpm"
-	"github.com/imdario/mergo"
-	"github.com/pkg/errors"
-
-	// blank imports here because the formats implementations need register
-	// themselves
-	_ "github.com/goreleaser/nfpm/deb"
-	_ "github.com/goreleaser/nfpm/rpm"
-
 	"github.com/goreleaser/goreleaser/internal/artifact"
 	"github.com/goreleaser/goreleaser/internal/linux"
 	"github.com/goreleaser/goreleaser/internal/pipe"
@@ -22,6 +13,11 @@ import (
 	"github.com/goreleaser/goreleaser/internal/tmpl"
 	"github.com/goreleaser/goreleaser/pkg/config"
 	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/goreleaser/nfpm"
+	_ "github.com/goreleaser/nfpm/deb" // blank import to register the format
+	_ "github.com/goreleaser/nfpm/rpm" // blank import to register the format
+	"github.com/imdario/mergo"
+	"github.com/pkg/errors"
 )
 
 const defaultNameTemplate = "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
@@ -30,7 +26,7 @@ const defaultNameTemplate = "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arc
 type Pipe struct{}
 
 func (Pipe) String() string {
-	return "creating Linux packages with nfpm"
+	return "Linux packages with nfpm"
 }
 
 // Default sets the pipe defaults
@@ -43,7 +39,7 @@ func (Pipe) Default(ctx *context.Context) error {
 		fpm.NameTemplate = defaultNameTemplate
 	}
 	if fpm.Files == nil {
-		fpm.Files = make(map[string]string)
+		fpm.Files = map[string]string{}
 	}
 	return nil
 }

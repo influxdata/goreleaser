@@ -35,6 +35,10 @@ brew:
   # Default is empty.
   download_strategy: GitHubPrivateRepositoryReleaseDownloadStrategy
 
+  # Allows you to add a custom require_relative at the top of the formula template
+  # Default is empty
+  custom_require: custom_download_strategy 
+
   # Git author used to commit to the repository.
   # Defaults are shown.
   commit_author:
@@ -62,6 +66,13 @@ brew:
   # leaving the responsibility of publishing it to the user.
   # Default is false.
   skip_upload: true
+
+  # Custom block for brew.
+  # Can be used to specify alternate downloads for devel or head releases.
+  # Default is empty.
+  custom_block: |
+    head "https://github.com/some/package.git"
+    ...
 
   # Packages your package depends on.
   dependencies:

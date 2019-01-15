@@ -11,8 +11,6 @@ Deprecate code will be removed after ~6 months from the time it was deprecated.
 
 # Active deprecation notices
 
-No active deprecation notices at this time.
-
 <!--
 
 Template for new deprecations:
@@ -34,6 +32,78 @@ to this:
 ```
 
  -->
+
+## docker.binary
+
+> since 2018-10-01
+
+You can now create a Docker image with multiple binaries.
+
+Change this:
+
+```yaml
+dockers:
+- image: foo/bar
+  binary: foo
+```
+
+to this:
+
+```yaml
+dockers:
+- image: foo/bar
+  binaries:
+  - foo
+```
+
+## docker.image
+
+> since 2018-10-20
+
+This property was deprecated in favor of more flexible `image_templates`.
+The idea is to be able to define several images and tags using templates instead of just one image with tag templates.
+This flexibility allows images to be pushed to multiple registries.
+
+Change this:
+
+```yaml
+dockers:
+- image: foo/bar
+  tag_templates:
+    - '{{ .Tag }}'
+```
+
+to this:
+
+```yaml
+dockers:
+- image_templates:
+    - 'foo/bar:{{ .Tag }}'
+```
+
+## docker.tag_templates
+
+> since 2018-10-20
+
+This property was deprecated in favor of more flexible `image_templates`.
+The idea is to be able to define several images and tags using templates instead of just one image with tag templates.
+
+Change this:
+
+```yaml
+dockers:
+- image: foo/bar
+  tag_templates:
+    - '{{ .Tag }}'
+```
+
+to this:
+
+```yaml
+dockers:
+- image_templates:
+    - 'foo/bar:{{ .Tag }}'
+```
 
 ## git.short_hash
 

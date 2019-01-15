@@ -15,7 +15,7 @@ type Pipe struct{}
 
 // String returns the description of the pipe
 func (Pipe) String() string {
-	return "releasing with HTTP PUT"
+	return "HTTP PUT"
 }
 
 // Default sets the pipe defaults
@@ -23,9 +23,8 @@ func (Pipe) Default(ctx *context.Context) error {
 	return http.Defaults(ctx.Config.Puts)
 }
 
-// Run the pipe
-func (Pipe) Run(ctx *context.Context) error {
-
+// Publish artifacts
+func (Pipe) Publish(ctx *context.Context) error {
 	if len(ctx.Config.Puts) == 0 {
 		return pipe.Skip("put section is not configured")
 	}
@@ -33,6 +32,7 @@ func (Pipe) Run(ctx *context.Context) error {
 	// Check requirements for every instance we have configured.
 	// If not fulfilled, we can skip this pipeline
 	for _, instance := range ctx.Config.Puts {
+		instance := instance
 		if skip := http.CheckConfig(ctx, &instance, "put"); skip != nil {
 			return pipe.Skip(skip.Error())
 		}

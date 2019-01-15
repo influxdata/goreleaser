@@ -10,14 +10,14 @@ import (
 	"strings"
 
 	"github.com/apex/log"
-	"github.com/pkg/errors"
-
 	"github.com/goreleaser/goreleaser/internal/artifact"
+	"github.com/goreleaser/goreleaser/internal/deprecate"
 	"github.com/goreleaser/goreleaser/internal/pipe"
 	"github.com/goreleaser/goreleaser/internal/semerrgroup"
 	"github.com/goreleaser/goreleaser/internal/tmpl"
 	"github.com/goreleaser/goreleaser/pkg/config"
 	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/pkg/errors"
 )
 
 // ErrNoDocker is shown when docker cannot be found in $PATH
@@ -27,16 +27,35 @@ var ErrNoDocker = errors.New("docker not present in $PATH")
 type Pipe struct{}
 
 func (Pipe) String() string {
-	return "creating Docker images"
+	return "Docker images"
 }
 
 // Default sets the pipe defaults
 func (Pipe) Default(ctx *context.Context) error {
 	for i := range ctx.Config.Dockers {
 		var docker = &ctx.Config.Dockers[i]
-		if len(docker.TagTemplates) == 0 {
-			docker.TagTemplates = append(docker.TagTemplates, "{{ .Version }}")
+
+		if docker.Image != "" {
+			deprecate.Notice("docker.image")
+			deprecate.Notice("docker.tag_templates")
+
+			if len(docker.TagTemplates) == 0 {
+				docker.TagTemplates = []string{"{{ .Version }}"}
+			}
+
+			for _, tag := range docker.TagTemplates {
+				docker.ImageTemplates = append(
+					docker.ImageTemplates,
+					fmt.Sprintf("%s:%s", docker.Image, tag),
+				)
+			}
 		}
+
+		if docker.Binary != "" {
+			deprecate.Notice("docker.binary")
+			docker.Binaries = append(docker.Binaries, docker.Binary)
+		}
+
 		if docker.Goos == "" {
 			docker.Goos = "linux"
 		}
@@ -48,8 +67,10 @@ func (Pipe) Default(ctx *context.Context) error {
 	if len(ctx.Config.Dockers) != 1 {
 		return nil
 	}
-	if ctx.Config.Dockers[0].Binary == "" {
-		ctx.Config.Dockers[0].Binary = ctx.Config.Builds[0].Binary
+	if len(ctx.Config.Dockers[0].Binaries) == 0 {
+		ctx.Config.Dockers[0].Binaries = []string{
+			ctx.Config.Builds[0].Binary,
+		}
 	}
 	if ctx.Config.Dockers[0].Dockerfile == "" {
 		ctx.Config.Dockers[0].Dockerfile = "Dockerfile"
@@ -59,7 +80,7 @@ func (Pipe) Default(ctx *context.Context) error {
 
 // Run the pipe
 func (Pipe) Run(ctx *context.Context) error {
-	if len(ctx.Config.Dockers) == 0 || ctx.Config.Dockers[0].Image == "" {
+	if len(ctx.Config.Dockers) == 0 || missingImage(ctx) {
 		return pipe.Skip("docker section is not configured")
 	}
 	_, err := exec.LookPath("docker")
@@ -67,6 +88,21 @@ func (Pipe) Run(ctx *context.Context) error {
 		return ErrNoDocker
 	}
 	return doRun(ctx)
+}
+
+// Publish the docker images
+func (Pipe) Publish(ctx *context.Context) error {
+	var images = ctx.Artifacts.Filter(artifact.ByType(artifact.PublishableDockerImage)).List()
+	for _, image := range images {
+		if err := dockerPush(ctx, image); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func missingImage(ctx *context.Context) bool {
+	return ctx.Config.Dockers[0].Image == "" && len(ctx.Config.Dockers[0].ImageTemplates) == 0
 }
 
 func doRun(ctx *context.Context) error {
@@ -82,31 +118,39 @@ func doRun(ctx *context.Context) error {
 					artifact.ByGoarm(docker.Goarm),
 					artifact.ByType(artifact.Binary),
 					func(a artifact.Artifact) bool {
-						return a.Extra["Binary"] == docker.Binary
+						for _, bin := range docker.Binaries {
+							if a.ExtraOr("Binary", "").(string) == bin {
+								return true
+							}
+						}
+						return false
 					},
 				),
 			).List()
-			if len(binaries) != 1 {
+			// TODO: not so good of a check, if one binary match multiple
+			// binaries and the other match none, this will still pass...
+			if len(binaries) != len(docker.Binaries) {
 				return fmt.Errorf(
-					"%d binaries match docker definition: %s: %s_%s_%s",
+					"%d binaries match docker definition: %v: %s_%s_%s, should be %d",
 					len(binaries),
-					docker.Binary, docker.Goos, docker.Goarch, docker.Goarm,
+					docker.Binaries, docker.Goos, docker.Goarch, docker.Goarm,
+					len(docker.Binaries),
 				)
 			}
-			return process(ctx, docker, binaries[0])
+			return process(ctx, docker, binaries)
 		})
 	}
 	return g.Wait()
 }
 
-func process(ctx *context.Context, docker config.Docker, artifact artifact.Artifact) error {
+func process(ctx *context.Context, docker config.Docker, bins []artifact.Artifact) error {
 	tmp, err := ioutil.TempDir(ctx.Config.Dist, "goreleaserdocker")
 	if err != nil {
 		return errors.Wrap(err, "failed to create temporary dir")
 	}
 	log.Debug("tempdir: " + tmp)
 
-	images, err := processTagTemplates(ctx, docker, artifact)
+	images, err := processImageTemplates(ctx, docker)
 	if err != nil {
 		return err
 	}
@@ -115,54 +159,65 @@ func process(ctx *context.Context, docker config.Docker, artifact artifact.Artif
 		return errors.Wrap(err, "failed to link dockerfile")
 	}
 	for _, file := range docker.Files {
-		if err := link(file, filepath.Join(tmp, filepath.Base(file))); err != nil {
+		if err := os.MkdirAll(filepath.Join(tmp, filepath.Dir(file)), 0755); err != nil {
+			return errors.Wrapf(err, "failed to link extra file '%s'", file)
+		}
+		if err := link(file, filepath.Join(tmp, file)); err != nil {
 			return errors.Wrapf(err, "failed to link extra file '%s'", file)
 		}
 	}
-	if err := os.Link(artifact.Path, filepath.Join(tmp, filepath.Base(artifact.Path))); err != nil {
-		return errors.Wrap(err, "failed to link binary")
+	for _, bin := range bins {
+		if err := os.Link(bin.Path, filepath.Join(tmp, filepath.Base(bin.Path))); err != nil {
+			return errors.Wrap(err, "failed to link binary")
+		}
 	}
 
-	buildFlags, err := processBuildFlagTemplates(ctx, docker, artifact)
+	buildFlags, err := processBuildFlagTemplates(ctx, docker)
 	if err != nil {
 		return err
 	}
 
-	if err := dockerBuild(ctx, tmp, images[0], buildFlags); err != nil {
+	if err := dockerBuild(ctx, tmp, images, buildFlags); err != nil {
 		return err
 	}
-	for _, img := range images[1:] {
-		if err := dockerTag(ctx, images[0], img); err != nil {
-			return err
-		}
+	if docker.SkipPush {
+		// TODO: this should also be better handled
+		log.Warn(pipe.Skip("skip_push is set").Error())
+		return nil
 	}
-	return publish(ctx, docker, images)
+	for _, img := range images {
+		ctx.Artifacts.Add(artifact.Artifact{
+			Type:   artifact.PublishableDockerImage,
+			Name:   img,
+			Path:   img,
+			Goarch: docker.Goarch,
+			Goos:   docker.Goos,
+			Goarm:  docker.Goarm,
+		})
+	}
+	return nil
 }
 
-func processTagTemplates(ctx *context.Context, docker config.Docker, artifact artifact.Artifact) ([]string, error) {
+func processImageTemplates(ctx *context.Context, docker config.Docker) ([]string, error) {
 	// nolint:prealloc
 	var images []string
-	for _, tagTemplate := range docker.TagTemplates {
-		imageTemplate := fmt.Sprintf("%s:%s", docker.Image, tagTemplate)
-		// TODO: add overrides support to config
-		image, err := tmpl.New(ctx).
-			WithArtifact(artifact, map[string]string{}).
-			Apply(imageTemplate)
+	for _, imageTemplate := range docker.ImageTemplates {
+		image, err := tmpl.New(ctx).Apply(imageTemplate)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to execute tag template '%s'", tagTemplate)
+			return nil, errors.Wrapf(err, "failed to execute image template '%s'", imageTemplate)
 		}
+
 		images = append(images, image)
 	}
+
 	return images, nil
 }
 
-func processBuildFlagTemplates(ctx *context.Context, docker config.Docker, artifact artifact.Artifact) ([]string, error) {
+func processBuildFlagTemplates(ctx *context.Context, docker config.Docker) ([]string, error) {
 	// nolint:prealloc
 	var buildFlags []string
 	for _, buildFlagTemplate := range docker.BuildFlagTemplates {
-		buildFlag, err := tmpl.New(ctx).
-			WithArtifact(artifact, map[string]string{}).
-			Apply(buildFlagTemplate)
+		buildFlag, err := tmpl.New(ctx).Apply(buildFlagTemplate)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to process build flag template '%s'", buildFlagTemplate)
 		}
@@ -194,29 +249,10 @@ func link(src, dest string) error {
 	})
 }
 
-func publish(ctx *context.Context, docker config.Docker, images []string) error {
-	if ctx.SkipPublish {
-		// TODO: this should be better handled
-		log.Warn(pipe.ErrSkipPublishEnabled.Error())
-		return nil
-	}
-	if docker.SkipPush {
-		// TODO: this should also be better handled
-		log.Warn(pipe.Skip("skip_push is set").Error())
-		return nil
-	}
-	for _, image := range images {
-		if err := dockerPush(ctx, docker, image); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func dockerBuild(ctx *context.Context, root, image string, flags []string) error {
-	log.WithField("image", image).Info("building docker image")
+func dockerBuild(ctx *context.Context, root string, images, flags []string) error {
+	log.WithField("image", images[0]).Info("building docker image")
 	/* #nosec */
-	var cmd = exec.CommandContext(ctx, "docker", buildCommand(image, flags)...)
+	var cmd = exec.CommandContext(ctx, "docker", buildCommand(images, flags)...)
 	cmd.Dir = root
 	log.WithField("cmd", cmd.Args).WithField("cwd", cmd.Dir).Debug("running")
 	out, err := cmd.CombinedOutput()
@@ -227,42 +263,26 @@ func dockerBuild(ctx *context.Context, root, image string, flags []string) error
 	return nil
 }
 
-func buildCommand(image string, flags []string) []string {
-	base := []string{"build", "-t", image, "."}
+func buildCommand(images, flags []string) []string {
+	base := []string{"build", "."}
+	for _, image := range images {
+		base = append(base, "-t", image)
+	}
 	base = append(base, flags...)
 	return base
 }
 
-func dockerTag(ctx *context.Context, image, tag string) error {
-	log.WithField("image", image).WithField("tag", tag).Info("tagging docker image")
+func dockerPush(ctx *context.Context, image artifact.Artifact) error {
+	log.WithField("image", image.Name).Info("pushing docker image")
 	/* #nosec */
-	var cmd = exec.CommandContext(ctx, "docker", "tag", image, tag)
-	log.WithField("cmd", cmd.Args).Debug("running")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return errors.Wrapf(err, "failed to tag docker image: \n%s", string(out))
-	}
-	log.Debugf("docker tag output: \n%s", string(out))
-	return nil
-}
-
-func dockerPush(ctx *context.Context, docker config.Docker, image string) error {
-	log.WithField("image", image).Info("pushing docker image")
-	/* #nosec */
-	var cmd = exec.CommandContext(ctx, "docker", "push", image)
+	var cmd = exec.CommandContext(ctx, "docker", "push", image.Name)
 	log.WithField("cmd", cmd.Args).Debug("running")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return errors.Wrapf(err, "failed to push docker image: \n%s", string(out))
 	}
 	log.Debugf("docker push output: \n%s", string(out))
-	ctx.Artifacts.Add(artifact.Artifact{
-		Type:   artifact.DockerImage,
-		Name:   image,
-		Path:   image,
-		Goarch: docker.Goarch,
-		Goos:   docker.Goos,
-		Goarm:  docker.Goarm,
-	})
+	image.Type = artifact.DockerImage
+	ctx.Artifacts.Add(image)
 	return nil
 }

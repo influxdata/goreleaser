@@ -12,13 +12,13 @@ import (
 	"github.com/apex/log/handlers/cli"
 	"github.com/caarlos0/ctrlc"
 	"github.com/fatih/color"
-
 	"github.com/goreleaser/goreleaser/internal/pipe"
 	"github.com/goreleaser/goreleaser/internal/pipeline"
 	"github.com/goreleaser/goreleaser/pkg/config"
 	"github.com/goreleaser/goreleaser/pkg/context"
 )
 
+// nolint: gochecknoglobals
 var (
 	version = "dev"
 	commit  = "none"
@@ -39,11 +39,13 @@ type releaseOptions struct {
 	Timeout          time.Duration
 }
 
-func init() {
-	log.SetHandler(cli.Default)
-}
-
 func main() {
+	// enable colored output on travis
+	if os.Getenv("CI") != "" {
+		color.NoColor = false
+	}
+	log.SetHandler(cli.Default)
+
 	fmt.Println()
 	defer fmt.Println()
 
@@ -195,14 +197,15 @@ func loadConfig(path string) (config.Project, error) {
 	return config.Project{}, nil
 }
 
+// nolint: gochecknoglobals
 var exampleConfig = `# This is an example goreleaser.yaml file with some sane defaults.
 # Make sure to check the documentation at http://goreleaser.com
 before:
-   hooks:
-     # you may remove this if you don't use vgo
-     - go mod download
-     # you may remove this if you don't need go generate
-     - go generate ./...
+  hooks:
+    # you may remove this if you don't use vgo
+    - go mod download
+    # you may remove this if you don't need go generate
+    - go generate ./...
 builds:
 - env:
   - CGO_ENABLED=0
