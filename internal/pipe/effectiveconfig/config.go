@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/apex/log"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/pkg/context"
 	yaml "gopkg.in/yaml.v2"
 )
 

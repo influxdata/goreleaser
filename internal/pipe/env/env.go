@@ -6,8 +6,8 @@ import (
 	"bufio"
 	"os"
 
-	"github.com/goreleaser/goreleaser/internal/pipe"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/pipe"
+	"github.com/influxdata/goreleaser/pkg/context"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 )

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/goreleaser/goreleaser/internal/git"
-	"github.com/goreleaser/goreleaser/pkg/config"
+	"github.com/influxdata/goreleaser/internal/git"
+	"github.com/influxdata/goreleaser/pkg/config"
 	"github.com/pkg/errors"
 )
 

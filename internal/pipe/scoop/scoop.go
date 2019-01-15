@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/goreleaser/goreleaser/internal/artifact"
-	"github.com/goreleaser/goreleaser/internal/client"
-	"github.com/goreleaser/goreleaser/internal/pipe"
-	"github.com/goreleaser/goreleaser/internal/tmpl"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/artifact"
+	"github.com/influxdata/goreleaser/internal/client"
+	"github.com/influxdata/goreleaser/internal/pipe"
+	"github.com/influxdata/goreleaser/internal/tmpl"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 // ErrNoWindows when there is no build for windows (goos doesn't contain windows)

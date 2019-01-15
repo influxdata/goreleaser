@@ -8,12 +8,12 @@ import (
 	"github.com/apex/log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/goreleaser/goreleaser/internal/artifact"
-	"github.com/goreleaser/goreleaser/internal/pipe"
-	"github.com/goreleaser/goreleaser/internal/semerrgroup"
-	"github.com/goreleaser/goreleaser/internal/tmpl"
-	"github.com/goreleaser/goreleaser/pkg/config"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/artifact"
+	"github.com/influxdata/goreleaser/internal/pipe"
+	"github.com/influxdata/goreleaser/internal/semerrgroup"
+	"github.com/influxdata/goreleaser/internal/tmpl"
+	"github.com/influxdata/goreleaser/pkg/config"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 // Pipe for Artifactory

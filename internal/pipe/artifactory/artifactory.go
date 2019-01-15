@@ -7,9 +7,9 @@ import (
 	"io/ioutil"
 	h "net/http"
 
-	"github.com/goreleaser/goreleaser/internal/http"
-	"github.com/goreleaser/goreleaser/internal/pipe"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/http"
+	"github.com/influxdata/goreleaser/internal/pipe"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 // artifactoryResponse reflects the response after an upload request

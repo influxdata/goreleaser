@@ -10,12 +10,12 @@ import (
 	"strings"
 
 	"github.com/apex/log"
-	"github.com/goreleaser/goreleaser/internal/artifact"
-	"github.com/goreleaser/goreleaser/internal/linux"
-	"github.com/goreleaser/goreleaser/internal/pipe"
-	"github.com/goreleaser/goreleaser/internal/semerrgroup"
-	"github.com/goreleaser/goreleaser/internal/tmpl"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/artifact"
+	"github.com/influxdata/goreleaser/internal/linux"
+	"github.com/influxdata/goreleaser/internal/pipe"
+	"github.com/influxdata/goreleaser/internal/semerrgroup"
+	"github.com/influxdata/goreleaser/internal/tmpl"
+	"github.com/influxdata/goreleaser/pkg/context"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )

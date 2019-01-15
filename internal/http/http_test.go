@@ -13,9 +13,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/goreleaser/goreleaser/internal/artifact"
-	"github.com/goreleaser/goreleaser/pkg/config"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/artifact"
+	"github.com/influxdata/goreleaser/pkg/config"
+	"github.com/influxdata/goreleaser/pkg/context"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )

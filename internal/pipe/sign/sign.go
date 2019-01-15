@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/apex/log"
-	"github.com/goreleaser/goreleaser/internal/artifact"
-	"github.com/goreleaser/goreleaser/internal/pipe"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/artifact"
+	"github.com/influxdata/goreleaser/internal/pipe"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 // Pipe for artifact signing.

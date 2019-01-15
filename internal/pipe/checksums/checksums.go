@@ -9,10 +9,10 @@ import (
 
 	"github.com/apex/log"
 
-	"github.com/goreleaser/goreleaser/internal/artifact"
-	"github.com/goreleaser/goreleaser/internal/semerrgroup"
-	"github.com/goreleaser/goreleaser/internal/tmpl"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/artifact"
+	"github.com/influxdata/goreleaser/internal/semerrgroup"
+	"github.com/influxdata/goreleaser/internal/tmpl"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 // Pipe for checksums

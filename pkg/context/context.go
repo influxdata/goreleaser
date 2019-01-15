@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goreleaser/goreleaser/internal/artifact"
-	"github.com/goreleaser/goreleaser/pkg/config"
+	"github.com/influxdata/goreleaser/internal/artifact"
+	"github.com/influxdata/goreleaser/pkg/config"
 )
 
 // GitInfo includes tags and diffs used in some point

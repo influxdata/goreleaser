@@ -11,14 +11,14 @@ import (
 	"github.com/apex/log"
 	"github.com/pkg/errors"
 
-	"github.com/goreleaser/goreleaser/internal/semerrgroup"
-	"github.com/goreleaser/goreleaser/internal/tmpl"
-	builders "github.com/goreleaser/goreleaser/pkg/build"
-	"github.com/goreleaser/goreleaser/pkg/config"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/semerrgroup"
+	"github.com/influxdata/goreleaser/internal/tmpl"
+	builders "github.com/influxdata/goreleaser/pkg/build"
+	"github.com/influxdata/goreleaser/pkg/config"
+	"github.com/influxdata/goreleaser/pkg/context"
 
 	// langs to init
-	_ "github.com/goreleaser/goreleaser/internal/builders/golang"
+	_ "github.com/influxdata/goreleaser/internal/builders/golang"
 )
 
 // Pipe for build

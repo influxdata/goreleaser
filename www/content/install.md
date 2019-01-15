@@ -68,8 +68,8 @@ releasing to the public docker registry.
 If you need more things, you are encouraged to have your own image. You can
 always use GoReleaser's [own Dockerfile][dockerfile] as an example though.
 
-[dockerfile]: https://github.com/goreleaser/goreleaser/blob/master/Dockerfile
-[releases]: https://github.com/goreleaser/goreleaser/releases
+[dockerfile]: https://github.com/influxdata/goreleaser/blob/master/Dockerfile
+[releases]: https://github.com/influxdata/goreleaser/releases
 
 ## Compiling from source
 

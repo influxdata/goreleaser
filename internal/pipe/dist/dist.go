@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/apex/log"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 // Pipe for cleandis

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goreleaser/goreleaser/pkg/config"
+	"github.com/influxdata/goreleaser/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 

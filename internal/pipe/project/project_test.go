@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/goreleaser/goreleaser/pkg/config"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/pkg/config"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 func TestCustomProjectName(t *testing.T) {

@@ -4,7 +4,7 @@ weight: 1
 menu: true
 ---
 
-[GoReleaser](https://github.com/goreleaser/goreleaser) is a release automation
+[GoReleaser](https://github.com/influxdata/goreleaser) is a release automation
 tool for Go projects, the goal is to simplify the build, release and
 publish steps while providing variant customization options for all steps.
 

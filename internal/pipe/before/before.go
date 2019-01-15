@@ -7,7 +7,7 @@ import (
 
 	"github.com/apex/log"
 	"github.com/fatih/color"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 // Pipe is a global hook pipe

@@ -6,8 +6,8 @@ import (
 
 	"path/filepath"
 
-	"github.com/goreleaser/goreleaser/pkg/archive/tar"
-	"github.com/goreleaser/goreleaser/pkg/archive/zip"
+	"github.com/influxdata/goreleaser/pkg/archive/tar"
+	"github.com/influxdata/goreleaser/pkg/archive/zip"
 )
 
 // Archive represents a compression archive files from disk can be written to.

@@ -20,12 +20,12 @@ Documentation is hosted live at https://goreleaser.com
 
 ## Badges
 
-[![Release](https://img.shields.io/github/release/goreleaser/goreleaser.svg?style=for-the-badge)](https://github.com/goreleaser/goreleaser/releases/latest)
+[![Release](https://img.shields.io/github/release/goreleaser/goreleaser.svg?style=for-the-badge)](https://github.com/influxdata/goreleaser/releases/latest)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](/LICENSE.md)
 [![Travis](https://img.shields.io/travis/goreleaser/goreleaser/master.svg?style=for-the-badge)](https://travis-ci.org/goreleaser/goreleaser)
 [![Codecov branch](https://img.shields.io/codecov/c/github/goreleaser/goreleaser/master.svg?style=for-the-badge)](https://codecov.io/gh/goreleaser/goreleaser)
-<!-- [![Go Report Card](https://goreportcard.com/badge/github.com/goreleaser/goreleaser?style=for-the-badge)](https://goreportcard.com/report/github.com/goreleaser/goreleaser) -->
-[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](http://godoc.org/github.com/goreleaser/goreleaser)
+<!-- [![Go Report Card](https://goreportcard.com/badge/github.com/influxdata/goreleaser?style=for-the-badge)](https://goreportcard.com/report/github.com/influxdata/goreleaser) -->
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](http://godoc.org/github.com/influxdata/goreleaser)
 [![SayThanks.io](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg?style=for-the-badge)](https://saythanks.io/to/caarlos0)
 [![Powered By: GoReleaser](https://img.shields.io/badge/powered%20by-goreleaser-green.svg?style=for-the-badge)](https://github.com/goreleaser)
 [![Backers on Open Collective](https://opencollective.com/auditnet/backers/badge.svg?style=for-the-badge)](https://opencollective.com/auditnet/backers/)
@@ -80,7 +80,7 @@ Love our work and community? [Become a backer](https://opencollective.com/gorele
 ## Contributors
 
 This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-<a href="https://github.com/goreleaser/goreleaser/graphs/contributors"><img src="https://opencollective.com/goreleaser/contributors.svg?width=890" /></a>
+<a href="https://github.com/influxdata/goreleaser/graphs/contributors"><img src="https://opencollective.com/goreleaser/contributors.svg?width=890" /></a>
 
 ## Stargazers over time
 
@@ -88,4 +88,4 @@ This project exists thanks to all the people who contribute. [[Contribute](CONTR
 
 ---
 
-Would you like to fix something in the documentation? Feel free to open an [issue](https://github.com/goreleaser/goreleaser/issues).
+Would you like to fix something in the documentation? Feel free to open an [issue](https://github.com/influxdata/goreleaser/issues).

@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/apex/log"
-	"github.com/goreleaser/goreleaser/internal/deprecate"
-	"github.com/goreleaser/goreleaser/internal/git"
-	"github.com/goreleaser/goreleaser/internal/pipe"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/deprecate"
+	"github.com/influxdata/goreleaser/internal/git"
+	"github.com/influxdata/goreleaser/internal/pipe"
+	"github.com/influxdata/goreleaser/pkg/context"
 	"github.com/pkg/errors"
 )
 

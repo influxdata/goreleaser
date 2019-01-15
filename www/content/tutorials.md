@@ -12,4 +12,4 @@ Tutorials made by the community.
 Want to add your tutorial here? Please do! Edit [this file][tutorials] and open
 a Pull Request! Thanks!
 
-[tutorials]: https://github.com/goreleaser/goreleaser/blob/master/www/content/tutorials.md
+[tutorials]: https://github.com/influxdata/goreleaser/blob/master/www/content/tutorials.md

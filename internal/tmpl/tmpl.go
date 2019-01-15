@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/goreleaser/goreleaser/internal/artifact"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/artifact"
+	"github.com/influxdata/goreleaser/pkg/context"
 	"github.com/pkg/errors"
 )
 

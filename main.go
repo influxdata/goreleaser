@@ -12,10 +12,10 @@ import (
 	"github.com/apex/log/handlers/cli"
 	"github.com/caarlos0/ctrlc"
 	"github.com/fatih/color"
-	"github.com/goreleaser/goreleaser/internal/pipe"
-	"github.com/goreleaser/goreleaser/internal/pipeline"
-	"github.com/goreleaser/goreleaser/pkg/config"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/internal/pipe"
+	"github.com/influxdata/goreleaser/internal/pipeline"
+	"github.com/influxdata/goreleaser/pkg/config"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 // nolint: gochecknoglobals

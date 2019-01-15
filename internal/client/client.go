@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"os"
 
-	"github.com/goreleaser/goreleaser/pkg/config"
-	"github.com/goreleaser/goreleaser/pkg/context"
+	"github.com/influxdata/goreleaser/pkg/config"
+	"github.com/influxdata/goreleaser/pkg/context"
 )
 
 // Info of the repository
